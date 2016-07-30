@@ -1,0 +1,3 @@
+Even if there is no try, I will try to develop a little adventure/rpg game (playable in the terminal for now) in ruby.
+
+Just a little game where you create a adventurer and open doors to make probably bad encounters...
