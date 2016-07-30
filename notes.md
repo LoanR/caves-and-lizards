@@ -42,3 +42,6 @@ hash (weapon)
   critical multiplier
   feats required
 
+hash (creature)
+
+
