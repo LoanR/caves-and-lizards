@@ -1,5 +1,3 @@
-Étapes du jeu :
-
 Création du personnage :
 Plusieurs scénarios au hasard.
   - le joueur est en prison pour un quelconque crime, il discute avec un prisonnier / un garde l’interpelle. À partir de là, il choisi sa classe, ses attributs, ses talents, son histoire… Une émeute a lieu dans la prison, le joueur en profite pour s'échapper : premiers combats, autres prisonniers, gardes, suivant la direction choisie (égouts avec créatures...)
@@ -23,4 +21,24 @@ On peut donc utiliser un talent à chaque tour (détection pour les pièges, ava
 La difficulté des salles est dépendante du niveau du joueur (ennemi, nombre d'ennemi, pièges et nombre, ouverture coffres...)
 
 
-Lorsqu'un ennemi est rencontré dans une salle, une nouvelle instance est créée à partir de la base de donnée. Cette ennemi possède différentes stats qui lui permettent donc d'avoir un certain équipement choisi aléatoirement. Lors de la mort de l'ennemi, le loot dépend donc de cet équipement + d'autres éléments comme des potions (de l'argent ?)
+Lorsqu'un ennemi est rencontré dans une salle, une nouvelle instance est créée à partir de la base de donnée. Chaque types d'ennemis possèdent différents traits leur donnant accès à différents types d'armes. L'arme ou les armes portées sont choisies aléatoirement parmis les préférences. Lors de la mort de l'ennemi, le loot dépend de l'équipement porté : arme + d'autres éléments (armure, potions, arme supplémentaire(non équipable pour l'ennemi ou moins efficace) (+ argent ?))
+
+
+loot & xp tables :
+http://www.d20pfsrd.com/gamemastering#Table-Character-Wealth-by-Level
+http://www.d20srd.org/srd/treasure.htm
+
+
+hash (weapon)
+  id
+  name
+  type
+  weight
+  size
+  ranged (true or false)
+  damage type
+  damage
+  critical range
+  critical multiplier
+  feats required
+
