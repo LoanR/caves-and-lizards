@@ -29,14 +29,31 @@ http://www.d20pfsrd.com/gamemastering#Table-Character-Wealth-by-Level
 http://www.d20srd.org/srd/treasure.htm
 
 
+https://simplednd.wordpress.com/
+
+
+
+Règles très simplifiées :
+3 classes de départ
+
+skills :
+-listen
+-silent move
+-spot
+-hide
+-lockpick (chests - traps)
+-
+
+
 hash (weapon)
   id
   name
   type
   weight
   size
+  (material)
   ranged (true or false)
-  damage type
+  (damage type)
   damage
   critical range
   critical multiplier
