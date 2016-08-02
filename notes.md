@@ -41,8 +41,14 @@ skills :
 -silent move
 -spot
 -hide
--lockpick (chests - traps)
--
+-lockpick (chests - doors)
+-traps (set - disarm)
+-tumble
+-taunt
+-parry
+-heal
+-bluff
+-examine
 
 
 hash (weapon)
