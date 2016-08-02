@@ -38,9 +38,9 @@ Règles très simplifiées :
 
 skills :
 -listen
--silent move
+-silent move (against listen)
 -spot
--hide
+-hide (against spot)
 -lockpick (chests - doors)
 -traps (set - disarm)
 -tumble
@@ -49,6 +49,7 @@ skills :
 -heal
 -bluff
 -examine
+-concentration
 
 
 hash (weapon)
