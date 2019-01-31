@@ -11,13 +11,13 @@ FactoryBot.define do
        Faker::LordOfTheRings.character, Faker::ElderScrolls.name, Faker::Ancient.hero].sample
     end
     race { Faker::ElderScrolls.race }
-    level { rand(1..20) }
+    level { rand(1..5) }
     order { Faker::Superhero.prefix }
     background { Faker::TwinPeaks.quote }
     abilities { FactoryBot.build(:abilities) }
     living_player { false }
-    team { rand(1..4) }
-    max_hit_points { rand(5..30) }
+    team { rand(1..6) }
+    max_hit_points { rand(18..45) }
     equipment { FactoryBot.build(:equipment) }
     inventory { 'truc' }
 

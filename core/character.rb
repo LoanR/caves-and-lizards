@@ -48,7 +48,7 @@ class Character
     dexterity_bonus = 0
     if max_dexterity_bonus.nil? && dexterity_modifier >= 0
       dexterity_bonus = dexterity_modifier
-    elsif max_dexterity_bonus.positive? && dexterity_modifier.positive?
+    elsif !max_dexterity_bonus.nil? && max_dexterity_bonus.positive? && dexterity_modifier.positive?
       dexterity_bonus = [dexterity_modifier, max_dexterity_bonus].min
     end
     @equipment.armor.base_armor_class + dexterity_bonus
@@ -61,7 +61,7 @@ class Character
   end
 
   def suffers_damages!(damages:)
-    @hit_points -= damages.positive? ? damages : 0
+    @hit_points -= damages > 1 ? damages : 1
     @hit_points.negative? && @hit_points = 0
   end
 

@@ -5,12 +5,12 @@ require_relative '../../core/abilities'
 
 FactoryBot.define do
   factory :abilities do
-    strength { rand(1..30) }
-    dexterity { rand(1..30) }
-    constitution { rand(1..30) }
-    intelligence { rand(1..30) }
-    wisdom { rand(1..30) }
-    charisma { rand(1..30) }
+    strength { rand(8..14) }
+    dexterity { rand(8..14) }
+    constitution { rand(8..14) }
+    intelligence { rand(8..14) }
+    wisdom { rand(8..14) }
+    charisma { rand(8..14) }
 
     initialize_with { new(attributes) }
   end

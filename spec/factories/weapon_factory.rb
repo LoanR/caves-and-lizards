@@ -8,7 +8,7 @@ FactoryBot.define do
     name { [Faker::SwordArtOnline.item, Faker::Zelda.item].sample }
     cost { rand(6) }
     type { %w[melee ranged].sample }
-    damage { rand(1..3).to_s + 'd' + rand(1..10).to_s }
+    damage { rand(1..3).to_s + 'd' + rand(3..12).to_s }
     weight { rand(5) }
     properties { nil }
 
