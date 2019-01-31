@@ -1,2 +1,4 @@
 # Mac OSX Finder hidden files
 .DS_Store
+
+.vscode/**

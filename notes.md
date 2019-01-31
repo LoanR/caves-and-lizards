@@ -69,3 +69,43 @@ hash (weapon)
 hash (creature)
 
 
+D&D 3.5 or D&D 5.0 ?
+
+
+ANSI colors
+
+black =
+red = fails ennemi / desavantage
+green = réussite ennemi / avantage
+yellow =
+blue = rare items
+magenta = very rare items
+cyan =
+white = log / common uncommon items
+
+black light = précisions règles
+red light = fails héro
+green light = réussite héro
+yellow light = legendary items
+blue light =
+magenta light =
+cyan light =
+white light =
+
+background black =
+background red = dommages sur ennemi
+background green =
+background yellow = statut
+background blue =
+background magenta =
+background cyan =
+background white =
+
+background black light =
+background red light = dommages sur héro
+background green light = dommages du héro sur ennemi
+background yellow light =
+background blue light =
+background magenta light =
+background cyan light =
+background white light =
