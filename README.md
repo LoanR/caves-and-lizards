@@ -1,3 +1,16 @@
-Even if there is no try, I will try to develop a little adventure/rpg game (playable in the terminal for now) in ruby.
+# Caves & Lizards
+> Text turn based ruby game
 
-Just a little game where you create a adventurer and open doors to make probably bad encounters...
+In dev.
+Based on classic pen and paper games, mostly D&D
+
+## Game
+Not many things to do for now.
+One encounter with 4 ennemies, for manual testing purposes.
+You can only choose between 2 actions : attack an enemy or dodge. Miles away from an adventure and from a tale, but this is only the beginning!
+
+## Run
+You can clone the project and:
+- `bundle install` to install gems
+- `ruby run/launcher.rb` to play (more like, to test manually)
+- `bundle exec rspec spec/FILENAME_spec.rb` to launch tests
