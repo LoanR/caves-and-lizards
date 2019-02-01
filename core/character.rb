@@ -34,8 +34,12 @@ class Character
   end
 
   def attack_modifier
-    ability_check(ability_str_id: ABILITY_MODIFIER_CORRESPONDANCES[@equipment.main_hand.type])
+    ability_check(ability_str_id: relevant_ability_modifier_on_attack)
     # finesse
+  end
+
+  def relevant_ability_modifier_on_attack
+    ABILITY_MODIFIER_CORRESPONDANCES[@equipment.main_hand.type]
   end
 
   def proficiency
@@ -43,6 +47,11 @@ class Character
   end
 
   def armor_class
+    @equipment.armor.base_armor_class + appliable_dexterity_bonus
+    # shield
+  end
+
+  def appliable_dexterity_bonus
     dexterity_modifier = @abilities.modifier(ability_str_id: 'dexterity')
     max_dexterity_bonus = @equipment.armor.max_dexterity_bonus
     dexterity_bonus = 0
@@ -51,8 +60,7 @@ class Character
     elsif !max_dexterity_bonus.nil? && max_dexterity_bonus.positive? && dexterity_modifier.positive?
       dexterity_bonus = [dexterity_modifier, max_dexterity_bonus].min
     end
-    @equipment.armor.base_armor_class + dexterity_bonus
-    # shield
+    dexterity_bonus
   end
 
   def damage_throw
@@ -61,8 +69,12 @@ class Character
   end
 
   def suffers_damages!(damages:)
-    @hit_points -= damages > 1 ? damages : 1
+    @hit_points -= damages
     @hit_points.negative? && @hit_points = 0
+  end
+
+  def computed_damages(damages:) # on instance ? on character ?
+    damages > 1 ? damages : 1
   end
 
   def starts_dodging!

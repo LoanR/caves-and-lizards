@@ -173,7 +173,7 @@ class Combat
     attack_roll = attack_throws.min + modifier + proficiency_bonus
 
     attack_throw_msg = attack_throws.join(' or ')
-    puts format_attack(attack_roll: attack_roll, defender: defender, attack_throw_msg: attack_throw_msg, modifier: modifier, proficiency_bonus: proficiency_bonus)
+    puts format_attack(attack_roll: attack_roll, attacker: attacker, defender: defender, attack_throw_msg: attack_throw_msg, modifier: modifier, proficiency_bonus: proficiency_bonus)
     attack_roll
   end
 
@@ -183,11 +183,11 @@ class Combat
     values
   end
 
-  def format_attack(attack_roll:, defender:, attack_throw_msg:, modifier:, proficiency_bonus:)
+  def format_attack(attack_roll:, attacker:, defender:, attack_throw_msg:, modifier:, proficiency_bonus:)
     MessageBuilder.format_roll_message(
       roll: " attack: #{attack_roll} against armor class #{defender.armor_class}",
-      rule: ' 1d20 + ability modifier + proficiency ∵'\
-            " #{attack_throw_msg} + #{modifier} + #{proficiency_bonus}",
+      rule: " 1d20 + #{attacker.relevant_ability_modifier_on_attack} modifier + proficiency ⋮ #{defender.equipment.armor.name} + applicable dexterity bonus ∵"\
+            " #{attack_throw_msg} + #{modifier} + #{proficiency_bonus} ⋮ #{defender.equipment.armor.base_armor_class} + #{defender.appliable_dexterity_bonus}",
       disadvantage: defender.currently_dodging
     )
   end
@@ -195,17 +195,18 @@ class Combat
   def carry_damages(attacker:, defender:, modifier:)
     puts MessageBuilder.character_action_message(doer: attacker, bearer: defender, success: 'hits')
     damage_roll = attacker.damage_throw
+    total_damage = attacker.computed_damages(damages: damage_roll + modifier)
     sleep(0.8)
 
     puts MessageBuilder.format_roll_message(
-      roll: " damage: #{damage_roll + modifier}",
-      rule: " weapon's #{attacker.equipment.get_weapon_damage} + ability modifier"\
+      roll: " damage: #{total_damage}",
+      rule: " #{attacker.equipment.main_hand.name}'s #{attacker.equipment.get_weapon_damage} + #{attacker.relevant_ability_modifier_on_attack} modifier"\
             " ∵ #{damage_roll} + #{modifier}"
     )
     sleep(0.3)
 
-    defender.suffers_damages!(damages: damage_roll + modifier)
-    puts MessageBuilder.format_damage_taken(character: defender, damages: damage_roll + modifier)
+    defender.suffers_damages!(damages: total_damage)
+    puts MessageBuilder.format_damage_taken(character: defender, damages: total_damage)
     puts "\n"
     max_max_hp = @involved_fighters.map(&:max_hit_points).max # as instance var ?
     max_name_length = @involved_fighters.map { |fighter| fighter.name.size }.max # as instance var ?
