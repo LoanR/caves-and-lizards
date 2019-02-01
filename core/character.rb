@@ -65,7 +65,11 @@ class Character
 
   def damage_throw
     weapon_damage = @equipment.get_weapon_damage
-    weapon_damage[/^\d*/].to_i * dice(faces: weapon_damage[/\d*$/].to_i)
+    damage = 0
+    weapon_damage[/^\d*/].to_i.times do
+      damage += dice(faces: weapon_damage[/\d*$/].to_i)
+    end
+    damage
   end
 
   def suffers_damages!(damages:)
