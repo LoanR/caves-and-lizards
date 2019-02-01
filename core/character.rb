@@ -43,7 +43,7 @@ class Character
   end
 
   def proficiency
-    (@level - 1) / 4 + 2
+    (@level - 1) / 4 + 2 # (level + 7) / 4 .floor
   end
 
   def armor_class
