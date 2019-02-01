@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
 require_relative './output_color'
+require_relative '../conf/conf'
 
 class MessageBuilder
-  def self.format_roll_message(roll:, rule:, advantage: false, disadvantage: false, character: nil)
-    log = OutputColor.log(msg: ' rolls' + roll + ' ∴')
+  def self.format_roll_message(roll:, rule:, calculation:, advantage: false, disadvantage: false, character: nil)
+    log = OutputColor.log(msg: ' rolls' + roll)
     adv = advantage ? OutputColor.advantage(msg: ' advantage') : ''
     disadv = disadvantage ? OutputColor.disadvantage(msg: ' disadvantage') : ''
-    rule_log = adv + disadv + OutputColor.log_rule(msg: rule)
-
-    (character ? format_according_to_character(character: character, to_format: character.name, formatting: 'name_formatting') : OutputColor.log(msg: '    ➺ ')) + log + rule_log
+    rule_log = OutputColor.log(msg: OUTPUT_INDENT * 2 + '∴') + adv + disadv + OutputColor.log_rule(msg: rule)
+    calculation_log = OutputColor.log(msg: OUTPUT_INDENT * 2 + '∵') + OutputColor.log_rule(msg: calculation)
+    starter = character ? format_according_to_character(character: character, to_format: character.name, formatting: 'name_formatting') : OutputColor.log(msg: OUTPUT_INDENT + '➺  ')
+    [starter + log, rule_log, calculation_log]
   end
 
   def self.format_according_to_character(character:, to_format:, formatting:)
@@ -18,9 +20,8 @@ class MessageBuilder
 
   def self.format_damage_taken(character:, damages:)
     char = format_according_to_character(character: character, to_format: character.name, formatting: 'name_formatting')
-    dmg = format_according_to_character(character: character, to_format: damages.to_s + ' damages', formatting: 'damage_formatting')
-    remains = format_according_to_character(character: character, to_format: character.hit_points.to_s + ' hit points', formatting: 'damage_formatting')
-    "  #{char} took #{dmg} and is now at #{remains}..."
+    dmg = format_according_to_character(character: character, to_format: damages.to_s + ' damage' + (damages > 1 ? 's' : ''), formatting: 'damage_formatting')
+    OUTPUT_INDENT + "#{char} took #{dmg}..."
   end
 
   def self.format_state(state:)
@@ -29,6 +30,10 @@ class MessageBuilder
 
   def self.format_empty_health_bar(character:, bar:)
     format_according_to_character(character: character, to_format: bar, formatting: 'empty_health_bar_formatting') unless bar.nil?
+  end
+
+  def self.format_lost_health_bar(character:, bar:)
+    format_according_to_character(character: character, to_format: bar, formatting: 'lost_health_bar_formatting') unless bar.nil?
   end
 
   def self.format_filled_health_bar(character:, bar:)
@@ -55,6 +60,10 @@ class MessageBuilder
     character.living_player ? 'empty_hero_health_bar' : 'empty_health_bar'
   end
 
+  def self.lost_health_bar_formatting(character:)
+    character.living_player ? 'lost_hero_health_bar' : 'lost_health_bar'
+  end
+
   def self.filled_health_bar_formatting(character:)
     character.living_player ? 'filled_hero_health_bar' : 'filled_health_bar'
   end
@@ -63,12 +72,12 @@ class MessageBuilder
     done = success ? format_according_to_character(character: doer, to_format: success, formatting: 'success_formatting') : ''
     miss = failed ? format_according_to_character(character: doer, to_format: failed, formatting: 'fail_formatting') : ''
     if !subject
-      doer_name = doer && success ? format_according_to_character(character: doer, to_format: doer.name, formatting: 'name_formatting') + ' ' : ''
-      bearer_name = bearer && failed ? ' ' + format_according_to_character(character: bearer, to_format: bearer.name, formatting: 'name_formatting') : ''
+      doer_name = doer && success ? doer.name + ' ' : ''
+      bearer_name = bearer && failed ? ' ' + bearer.name : ''
     else
-      doer_name = doer && failed ? format_according_to_character(character: doer, to_format: doer.name, formatting: 'name_formatting') + ' ' : ''
-      bearer_name = bearer && success ? ' ' + format_according_to_character(character: bearer, to_format: bearer.name, formatting: 'name_formatting') : ''
+      doer_name = doer && failed ? doer.name + ' ' : ''
+      bearer_name = bearer && success ? ' ' + bearer.name : ''
     end
-    '  ' + doer_name + done + miss + bearer_name + (success ? '!' : '...')
+    OUTPUT_INDENT + doer_name + done + miss + bearer_name + (success ? '!' : '...')
   end
 end

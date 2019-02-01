@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+require_relative './conf'
+
 attack_action_key = 'attack'
 dodge_action_key = 'dodge'
 
 COMBAT_ACTIONS_CHOICES = [
-  '    1: ' + attack_action_key,
-  '    2: ' + dodge_action_key
+  OUTPUT_INDENT + '1: ' + attack_action_key,
+  OUTPUT_INDENT + '2: ' + dodge_action_key
 ].freeze
 
 COMBAT_ACTION_IDENTIFIERS = Hash[

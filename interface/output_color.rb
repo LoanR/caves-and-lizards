@@ -67,12 +67,20 @@ class OutputColor
     msg.black.on_red
   end
 
+  def self.lost_health_bar(msg:)
+    msg.black.on_magenta
+  end
+
   def self.filled_health_bar(msg:)
     msg.black.on_green
   end
 
   def self.empty_hero_health_bar(msg:)
     msg.black.on_light_red
+  end
+
+  def self.lost_hero_health_bar(msg:)
+    msg.black.on_light_magenta
   end
 
   def self.filled_hero_health_bar(msg:)

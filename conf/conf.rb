@@ -10,3 +10,5 @@ ABILITY_MODIFIER_CORRESPONDANCES = Hash[
   melee_weapon_type => strength_ability,
   ranged_weapon_type => dexterity_ability
 ]
+
+OUTPUT_INDENT = '    '

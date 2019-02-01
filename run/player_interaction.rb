@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../conf/actions'
+require_relative '../conf/conf'
 
 class PlayerInteraction
   def initialize(**opts)
@@ -25,12 +26,12 @@ class PlayerInteraction
 
   def ask_for_input
     puts @question
-    lines = 2
+    lines = 3
     @choices.each do |choice|
       lines += 1
       puts choice
     end
-    print '    '
+    print OUTPUT_INDENT
     input = gets.strip
     print "\e[A\e[2K" * lines
     input

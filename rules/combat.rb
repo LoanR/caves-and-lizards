@@ -3,6 +3,7 @@
 require_relative '../core/random'
 require_relative '../run/player_interaction'
 require_relative '../conf/actions'
+require_relative '../conf/conf'
 require_relative '../interface/message_builder'
 
 class Combat
@@ -26,7 +27,8 @@ class Combat
     character.set_initiative(initiative: roll + dexterity_check)
     puts MessageBuilder.format_roll_message(
       roll: " initiative: #{character.initiative}",
-      rule: " 1d20 + dexterity check ∵ #{roll} + #{dexterity_check}",
+      rule: ' 1d20 + dexterity check',
+      calculation: " #{roll} + #{dexterity_check}",
       character: character
     )
     # equality cases?
@@ -40,11 +42,19 @@ class Combat
     @involved_fighters.each do |active_character|
       next if dead_character_or_no_ennemies(character: active_character)
 
-      puts MessageBuilder.format_according_to_character(
-        character: active_character,
-        to_format: active_character.name,
-        formatting: 'name_formatting'
-      ) + ':'
+      if active_character.living_player
+        puts MessageBuilder.format_according_to_character(
+          character: active_character,
+          to_format: active_character.name,
+          formatting: 'name_formatting'
+        )
+      else
+        print MessageBuilder.format_according_to_character(
+          character: active_character,
+          to_format: active_character.name,
+          formatting: 'name_formatting'
+        )
+      end
       active_character.currently_dodging && active_character.stops_dodging!
       choose_and_execute_action(character: active_character)
     end
@@ -69,7 +79,7 @@ class Combat
   def select_character_action(character:)
     if character.living_player
       PlayerInteraction.new(
-        question: '  What do you want to do?',
+        question: OUTPUT_INDENT + 'What do you want to do?',
         choices: COMBAT_ACTIONS_CHOICES,
         identifiers: COMBAT_ACTION_IDENTIFIERS
       ).ask_for_hero_action
@@ -85,7 +95,14 @@ class Combat
       to_format: defender.name,
       formatting: 'name_formatting'
     )
-    puts "  attacks #{enemy_name}"
+    if character.living_player
+      print MessageBuilder.format_according_to_character(
+        character: character,
+        to_format: character.name,
+        formatting: 'name_formatting'
+      )
+    end
+    puts " attacks #{enemy_name}"
     sleep(0.8)
 
     resolve_attack(attacker: character, defender: defender)
@@ -103,17 +120,21 @@ class Combat
 
   def designate_target(enemies:, character:)
     if character.living_player
-      ask_player_for_target(enemies: enemies)
+      ask_player_for_target(enemies: enemies, character: character)
     else
       enemies.sample
     end
   end
 
-  def ask_player_for_target(enemies:)
+  def ask_player_for_target(enemies:, character:)
     target_choices, target_identifiers = prepare_player_target_selection(enemies: enemies)
-
+    puts MessageBuilder.format_according_to_character(
+      character: character,
+      to_format: character.name,
+      formatting: 'name_formatting'
+    )
     selected_enemy_uuid = PlayerInteraction.new(
-      question: '  Who do you want to attack?',
+      question: OUTPUT_INDENT + 'Who do you want to attack?',
       choices: target_choices,
       identifiers: target_identifiers
     ).ask_for_hero_action
@@ -141,33 +162,43 @@ class Combat
   end
 
   def format_enemy_selection_data_question(enemy:, index:, max_max_hp:, max_name_length:)
-    "    #{index + 1}: " + "#{enemy.name} ".rjust(max_name_length + 1, '.') +
+    OUTPUT_INDENT + "#{index + 1}: " + "#{enemy.name} ".ljust(max_name_length + 1, '.') +
       format_health_bar(character: enemy, max_max_hp: max_max_hp) +
       " #{enemy.currently_dodging ? MessageBuilder.format_state(state: 'dodging') : ''}"
   end
 
-  def format_health_bar(character:, max_max_hp:)
-    health_bar = character.hit_points > 0 ? "#{character.hit_points}/#{character.max_hit_points}hp" : ' ♱'
-    health_bar = health_bar.ljust((30 * character.max_hit_points / max_max_hp).round) # 30 space magic
-    filled_bar = health_bar.slice!(0, (30.to_f * character.hit_points / max_max_hp).ceil) # 30 space magic
-    MessageBuilder.format_filled_health_bar(character: character, bar: filled_bar) +
-      MessageBuilder.format_empty_health_bar(character: character, bar: health_bar)
+  def format_health_bar(character:, max_max_hp:, damages: 0)
+    if character.hit_points > 0
+      health_bar = " #{character.hit_points.to_s}/#{character.max_hit_points}hp"
+    else
+      health_bar = ' ♱'
+    end
+    if character.hit_points > 0
+      health_bar = health_bar.ljust((30 * character.max_hit_points / max_max_hp).round) # 30 space magic
+      filled_bar = health_bar.slice!(0, (30.to_f * character.hit_points / max_max_hp).ceil) # 30 space magic
+      lost_bar = health_bar.slice!(0, (30.to_f * damages / max_max_hp).ceil) # 30 space magic
+      MessageBuilder.format_filled_health_bar(character: character, bar: filled_bar) +
+        MessageBuilder.format_lost_health_bar(character: character, bar: lost_bar) +
+        MessageBuilder.format_empty_health_bar(character: character, bar: health_bar)
+    else
+      health_bar
+    end
   end
 
   def resolve_attack(attacker:, defender:)
     modifier = attacker.attack_modifier
-    attack_roll = perform_attack(attacker: attacker, defender: defender, modifier: modifier)
+    attack_throws = attack_dice(attacker: attacker, defender: defender)
+    attack_roll = perform_attack(attacker: attacker, defender: defender, attack_throws: attack_throws, modifier: modifier)
     sleep(0.3)
 
     if attack_roll >= defender.armor_class
       carry_damages(attacker: attacker, defender: defender, modifier: modifier)
     else
-      miss_hit(attacker: attacker, defender: defender)
+      miss_hit(attacker: attacker, defender: defender, attack_throws: attack_throws, modifier: modifier)
     end
   end
 
-  def perform_attack(attacker:, defender:, modifier:)
-    attack_throws = attack_dice(attacker: attacker, defender: defender)
+  def perform_attack(attacker:, defender:, modifier:, attack_throws:)
     # critical hits critical failures ?
     proficiency_bonus = attacker.proficiency
     attack_roll = attack_throws.min + modifier + proficiency_bonus
@@ -186,8 +217,8 @@ class Combat
   def format_attack(attack_roll:, attacker:, defender:, attack_throw_msg:, modifier:, proficiency_bonus:)
     MessageBuilder.format_roll_message(
       roll: " attack: #{attack_roll} against armor class #{defender.armor_class}",
-      rule: " 1d20 + #{attacker.relevant_ability_modifier_on_attack} modifier + proficiency ⋮ #{defender.equipment.armor.name} + applicable dexterity bonus ∵"\
-            " #{attack_throw_msg} + #{modifier} + #{proficiency_bonus} ⋮ #{defender.equipment.armor.base_armor_class} + #{defender.appliable_dexterity_bonus}",
+      rule: " 1d20 + #{attacker.relevant_ability_modifier_on_attack} modifier + proficiency ⋮ #{defender.equipment.armor.name} + applicable dexterity bonus",
+      calculation: " #{attack_throw_msg} + #{modifier} + #{proficiency_bonus} ⋮ #{defender.equipment.armor.base_armor_class} + #{defender.appliable_dexterity_bonus}",
       disadvantage: defender.currently_dodging
     )
   end
@@ -195,13 +226,13 @@ class Combat
   def carry_damages(attacker:, defender:, modifier:)
     puts MessageBuilder.character_action_message(doer: attacker, bearer: defender, success: 'hits')
     damage_roll = attacker.damage_throw
-    total_damage = attacker.computed_damages(damages: damage_roll + modifier)
+    total_damage = attacker.computed_damages(damages: damage_roll.reduce(:+) + modifier)
     sleep(0.8)
 
     puts MessageBuilder.format_roll_message(
       roll: " damage: #{total_damage}",
-      rule: " #{attacker.equipment.main_hand.name}'s #{attacker.equipment.get_weapon_damage} + #{attacker.relevant_ability_modifier_on_attack} modifier"\
-            " ∵ #{damage_roll} + #{modifier}"
+      rule: " #{attacker.equipment.main_hand.name}'s #{attacker.equipment.get_weapon_damage} + #{attacker.relevant_ability_modifier_on_attack} modifier",
+      calculation: " (#{damage_roll.join(' + ')}) + #{modifier}"
     )
     sleep(0.3)
 
@@ -211,15 +242,19 @@ class Combat
     max_max_hp = @involved_fighters.map(&:max_hit_points).max # as instance var ?
     max_name_length = @involved_fighters.map { |fighter| fighter.name.size }.max # as instance var ?
     @involved_fighters.each do |fighter|
-      name = '  ' + fighter.name + ': '
-      puts name.rjust(max_name_length + 4) + format_health_bar(character: fighter, max_max_hp: max_max_hp)
+      if fighter == defender
+        health_bar = OUTPUT_INDENT + MessageBuilder.format_according_to_character(character: fighter, to_format: (fighter.name  + ': ').ljust(max_name_length + 2, '.'), formatting: 'fail_formatting')
+        health_bar += format_health_bar(character: fighter, max_max_hp: max_max_hp, damages: total_damage)
+      else
+        health_bar = OUTPUT_INDENT + (fighter.name + ': ').ljust(max_name_length + 2, '.') + format_health_bar(character: fighter, max_max_hp: max_max_hp)
+      end
+      puts health_bar
     end
   end
 
-  def miss_hit(attacker:, defender:)
+  def miss_hit(attacker:, defender:, attack_throws:, modifier:)
     missed_msg = MessageBuilder.character_action_message(doer: attacker, bearer: defender, failed: 'missed')
-    if defender.currently_dodging
-      # dodging is effective only when one of the attack rolls is above AC
+    if defender.currently_dodging && attack_throws.max + modifier + attacker.proficiency >= defender.armor_class
       missed_msg += MessageBuilder.character_action_message(doer: defender, success: 'dodged', subject: false)
     end
     puts missed_msg
@@ -229,14 +264,22 @@ class Combat
     @involved_fighters.reject do |fighter|
       if fighter.hit_points <= 0
         @dead_fighters << fighter
-        puts "  #{fighter.name} died!"
+        puts "\n"
+        puts OUTPUT_INDENT + "♱ #{fighter.name} ♱ died!"
       end
       fighter.hit_points <= 0
     end
   end
 
   def dodge_until_next_turn(character:)
-    puts '  tries to ' + MessageBuilder.format_state(state: 'dodge') + '.'
+    if character.living_player
+      print MessageBuilder.format_according_to_character(
+        character: character,
+        to_format: character.name,
+        formatting: 'name_formatting'
+      )
+    end
+    puts ' tries to ' + MessageBuilder.format_state(state: 'dodge') + '.'
     character.starts_dodging!
   end
 end
