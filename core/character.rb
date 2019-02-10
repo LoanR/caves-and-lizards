@@ -5,7 +5,7 @@ require 'securerandom'
 require_relative './random'
 require_relative '../conf/conf'
 
-class Character
+class Character # Creature ?
   attr_reader :uuid, :initiative, :name, :race, :level, :order, :background, :abilities, :living_player, :team, :max_hit_points, :hit_points, :equipment, :inventory, :currently_dodging
 
   def initialize(**opts)
@@ -19,6 +19,8 @@ class Character
     @uuid = SecureRandom.uuid
     @currently_dodging = false
     @initiative = 0
+    #@skills
+    #@speed
   end
 
   def attack_throw # why on character ? Always 1d20, need instance ? More like rule, yes ?
@@ -46,7 +48,7 @@ class Character
     (@level - 1) / 4 + 2 # (level + 7) / 4 .floor
   end
 
-  def armor_class
+  def armor_class # this is a generic dexterity saving throw
     @equipment.armor.base_armor_class + appliable_dexterity_bonus
     # shield
   end
@@ -73,7 +75,7 @@ class Character
   end
 
   def suffers_damages!(damages:)
-    @hit_points -= damages
+    @hit_points -= damages > -1 ? damages : 0
     @hit_points.negative? && @hit_points = 0
   end
 

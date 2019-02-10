@@ -31,7 +31,9 @@ describe Character do
         )
       end
 
-      it { is_expected.to be <= 1 * 3 }
+      it { is_expected.to have(1).items }
+      it { is_expected.to all(be > 0) }
+      it { is_expected.to all(be <= 3) }
     end
 
     context 'with 3d10' do
@@ -50,15 +52,21 @@ describe Character do
         )
       end
 
-      it { is_expected.to be <= 3 * 10 }
+      it { is_expected.to have(3).items }
+      it { is_expected.to all(be > 0) }
+      it { is_expected.to all(be <= 10) }
     end
 
     context 'with random damage dice' do
-      it do
-        weapon_damage = character.equipment.get_weapon_damage
-        max_damage = weapon_damage[/^\d*/].to_i * weapon_damage[/\d*$/].to_i
-        expect(character.damage_throw).to be <= max_damage
-      end
+      subject { character.damage_throw }
+
+      let(:weapon_damage) { character.equipment.get_weapon_damage }
+      let(:dice) { weapon_damage[/^\d*/].to_i }
+      let(:faces) { weapon_damage[/\d*$/].to_i }
+
+      it { is_expected.to have(dice).items }
+      it { is_expected.to all(be > 0) }
+      it { is_expected.to all(be <= faces) }
     end
   end
 
@@ -261,6 +269,13 @@ describe Character do
       it do
         character.suffers_damages!(damages: 3)
         expect(character.hit_points).to eq(character.max_hit_points - 3)
+      end
+    end
+
+    context 'when zero damages' do
+      it do
+        character.suffers_damages!(damages: 0)
+        expect(character.hit_points).to eq(character.max_hit_points)
       end
     end
 

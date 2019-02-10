@@ -6,6 +6,8 @@ require_relative '../conf/actions'
 require_relative '../conf/conf'
 require_relative '../interface/message_builder'
 
+# may be better with Encounter, CombatRound, CharacterTurn and Action (Attack, Search...) or Status (Dodge, Sneak...)
+
 class Combat
   attr_reader :involved_fighters, :dead_fighters
 
@@ -14,14 +16,14 @@ class Combat
     @dead_fighters = []
   end
 
-  def resolve_initiative!
+  def resolve_initiative! # initiative concern
     @involved_fighters.each do |fighter|
       roll_initiative!(character: fighter)
     end
     @involved_fighters = arrange_turn_order(characters: @involved_fighters)
   end
 
-  def roll_initiative!(character:)
+  def roll_initiative!(character:) # initiative concern
     roll = dice(faces: 20)
     dexterity_check = character.ability_check(ability_str_id: 'dexterity')
     character.set_initiative(initiative: roll + dexterity_check)
@@ -34,7 +36,7 @@ class Combat
     # equality cases?
   end
 
-  def arrange_turn_order(characters:)
+  def arrange_turn_order(characters:) # initiative concern
     characters.sort_by { |fighter| -fighter.initiative }
   end
 
@@ -88,7 +90,7 @@ class Combat
     end
   end
 
-  def select_and_attack_target(character:)
+  def select_and_attack_target(character:) # attack object
     defender = choose_target(character: character)
     enemy_name = MessageBuilder.format_according_to_character(
       character: defender,
@@ -109,16 +111,16 @@ class Combat
     @involved_fighters = select_living_fighters
   end
 
-  def choose_target(character:)
+  def choose_target(character:) # attack object
     enemies = select_potential_targets(character: character)
     designate_target(enemies: enemies, character: character)
   end
 
-  def select_potential_targets(character:)
+  def select_potential_targets(character:) # attack object
     @involved_fighters.reject { |fighter| fighter.team == character.team }
   end
 
-  def designate_target(enemies:, character:)
+  def designate_target(enemies:, character:) # attack object
     if character.living_player
       ask_player_for_target(enemies: enemies, character: character)
     else
@@ -126,7 +128,7 @@ class Combat
     end
   end
 
-  def ask_player_for_target(enemies:, character:)
+  def ask_player_for_target(enemies:, character:) # attack object
     target_choices, target_identifiers = prepare_player_target_selection(enemies: enemies)
     puts MessageBuilder.format_according_to_character(
       character: character,
@@ -144,7 +146,7 @@ class Combat
     end
   end
 
-  def prepare_player_target_selection(enemies:)
+  def prepare_player_target_selection(enemies:) # attack object
     target_choices = []
     target_identifiers = {}
     max_max_hp = enemies.map(&:max_hit_points).max # as instance var ?
@@ -161,13 +163,13 @@ class Combat
     [target_choices, target_identifiers]
   end
 
-  def format_enemy_selection_data_question(enemy:, index:, max_max_hp:, max_name_length:)
+  def format_enemy_selection_data_question(enemy:, index:, max_max_hp:, max_name_length:) # attack object
     OUTPUT_INDENT + "#{index + 1}: " + "#{enemy.name} ".ljust(max_name_length + 1, '.') +
       format_health_bar(character: enemy, max_max_hp: max_max_hp) +
       " #{enemy.currently_dodging ? MessageBuilder.format_state(state: 'dodging') : ''}"
   end
 
-  def format_health_bar(character:, max_max_hp:, damages: 0)
+  def format_health_bar(character:, max_max_hp:, damages: 0) # not here
     if character.hit_points > 0
       health_bar = " #{character.hit_points.to_s}/#{character.max_hit_points}hp"
     else
@@ -185,7 +187,7 @@ class Combat
     end
   end
 
-  def resolve_attack(attacker:, defender:)
+  def resolve_attack(attacker:, defender:) # attack object
     modifier = attacker.attack_modifier
     attack_throws = attack_dice(attacker: attacker, defender: defender)
     attack_roll = perform_attack(attacker: attacker, defender: defender, attack_throws: attack_throws, modifier: modifier)
@@ -198,7 +200,7 @@ class Combat
     end
   end
 
-  def perform_attack(attacker:, defender:, modifier:, attack_throws:)
+  def perform_attack(attacker:, defender:, modifier:, attack_throws:) # attack object
     # critical hits critical failures ?
     proficiency_bonus = attacker.proficiency
     attack_roll = attack_throws.min + modifier + proficiency_bonus
@@ -208,13 +210,13 @@ class Combat
     attack_roll
   end
 
-  def attack_dice(attacker:, defender:)
+  def attack_dice(attacker:, defender:) # attack object
     values = [attacker.attack_throw]
     defender.currently_dodging && values << attacker.attack_throw
     values
   end
 
-  def format_attack(attack_roll:, attacker:, defender:, attack_throw_msg:, modifier:, proficiency_bonus:)
+  def format_attack(attack_roll:, attacker:, defender:, attack_throw_msg:, modifier:, proficiency_bonus:) # useless
     MessageBuilder.format_roll_message(
       roll: " attack: #{attack_roll} against armor class #{defender.armor_class}",
       rule: " 1d20 + #{attacker.relevant_ability_modifier_on_attack} modifier + proficiency ⋮ #{defender.equipment.armor.name} + applicable dexterity bonus",
@@ -223,7 +225,7 @@ class Combat
     )
   end
 
-  def carry_damages(attacker:, defender:, modifier:)
+  def carry_damages(attacker:, defender:, modifier:) # attack or damage object
     puts MessageBuilder.character_action_message(doer: attacker, bearer: defender, success: 'hits')
     damage_roll = attacker.damage_throw
     total_damage = attacker.computed_damages(damages: damage_roll.reduce(:+) + modifier)
@@ -252,7 +254,7 @@ class Combat
     end
   end
 
-  def miss_hit(attacker:, defender:, attack_throws:, modifier:)
+  def miss_hit(attacker:, defender:, attack_throws:, modifier:) # attack object
     missed_msg = MessageBuilder.character_action_message(doer: attacker, bearer: defender, failed: 'missed')
     if defender.currently_dodging && attack_throws.max + modifier + attacker.proficiency >= defender.armor_class
       missed_msg += MessageBuilder.character_action_message(doer: defender, success: 'dodged', subject: false)

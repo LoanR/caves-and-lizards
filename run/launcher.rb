@@ -19,6 +19,8 @@ until combat.count_involved_teams <= 1
   puts `clear` if round > 1
   puts '_.-o•O0    -•-    0O•o-._'.center(101)
   combat.round_sequence
+  puts 'Next round'
+  gets
 end
 victors = combat.involved_fighters.map(&:name)
 puts "`'°-•O0    -•-    0O•-°'´".center(101)
